@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Gradient Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 CSS Gradient Generator</h1>
+        <p class="subtitle">Create beautiful CSS gradients with live preview</p>
+        
+        <div class="gradient-preview" id="preview"></div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Gradient Type</label>
+                <select id="gradientType">
+                    <option value="linear">Linear</option>
+                    <option value="radial">Radial</option>
+                    <option value="conic">Conic</option>
+                </select>
+            </div>
+            
+            <div class="control-group" id="angleControl">
+                <label>Angle: <span id="angleValue">90</span>°</label>
+                <input type="range" id="angle" min="0" max="360" value="90">
+            </div>
+            
+            <div class="colors-section">
+                <h3>Colors</h3>
+                <div class="color-stops" id="colorStops">
+                    <div class="color-stop">
+                        <input type="color" class="color-picker" value="#667eea">
+                        <input type="number" class="position" value="0" min="0" max="100">%
+                    </div>
+                    <div class="color-stop">
+                        <input type="color" class="color-picker" value="#764ba2">
+                        <input type="number" class="position" value="100" min="0" max="100">%
+                    </div>
+                </div>
+                <button id="addColor" class="btn btn-secondary">+ Add Color</button>
+            </div>
+        </div>
+        
+        <div class="output-section">
+            <h3>CSS Code</h3>
+            <div class="code-block">
+                <code id="cssCode">background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);</code>
+                <button id="copyBtn" class="btn btn-copy">Copy</button>
+            </div>
+        </div>
+        
+        <div class="presets">
+            <h3>Presets</h3>
+            <div class="preset-grid" id="presets"></div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
