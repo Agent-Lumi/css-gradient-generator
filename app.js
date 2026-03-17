@@ -11,20 +11,43 @@ class GradientGenerator {
         this.copyBtn = document.getElementById('copyBtn');
         this.presets = document.getElementById('presets');
         
-        this.presetGradients = [
-            'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-            'linear-gradient(90deg, #f093fb 0%, #f5576c 100%)',
-            'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)',
-            'linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)',
-            'linear-gradient(90deg, #fa709a 0%, #fee140 100%)',
-            'linear-gradient(90deg, #30cfd0 0%, #330867 100%)',
-            'linear-gradient(90deg, #a8edea 0%, #fed6e3 100%)',
-            'linear-gradient(90deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)',
-            'linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)',
-            'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)',
-            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
-        ];
+        this.presetCategories = {
+            'Sunset': [
+                { name: 'Golden Hour', gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' },
+                { name: 'Purple Dusk', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                { name: 'Coral Sunset', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)' },
+                { name: 'Orange Glow', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
+                { name: 'Twilight', gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' }
+            ],
+            'Nature': [
+                { name: 'Ocean', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+                { name: 'Forest', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+                { name: 'Mint', gradient: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)' },
+                { name: 'Spring', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
+                { name: 'Tropical', gradient: 'linear-gradient(135deg, #42e695 0%, #3bb2b8 100%)' }
+            ],
+            'Neon': [
+                { name: 'Pink Neon', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+                { name: 'Cyber', gradient: 'linear-gradient(135deg, #00f260 0%, #0575e6 100%)' },
+                { name: 'Electric', gradient: 'linear-gradient(135deg, #fc466b 0%, #3f5efb 100%)' },
+                { name: 'Vaporwave', gradient: 'linear-gradient(135deg, #ff00cc 0%, #333399 100%)' },
+                { name: 'Synthwave', gradient: 'linear-gradient(135deg, #ff006e 0%, #8338ec 100%)' }
+            ],
+            'Pastel': [
+                { name: 'Soft Cloud', gradient: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)' },
+                { name: 'Cotton Candy', gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)' },
+                { name: 'Lavender', gradient: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' },
+                { name: 'Peach', gradient: 'linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%)' },
+                { name: 'Rose', gradient: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)' }
+            ],
+            'Dark': [
+                { name: 'Midnight', gradient: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)' },
+                { name: 'Deep Space', gradient: 'linear-gradient(135deg, #000000 0%, #434343 100%)' },
+                { name: 'Obsidian', gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' },
+                { name: 'Charcoal', gradient: 'linear-gradient(135deg, #232526 0%, #414345 100%)' },
+                { name: 'Noir', gradient: 'linear-gradient(135deg, #141e30 0%, #243b55 100%)' }
+            ]
+        };
         
         this.init();
     }
@@ -129,13 +152,35 @@ class GradientGenerator {
     }
     
     renderPresets() {
-        this.presetGradients.forEach((gradient, index) => {
-            const preset = document.createElement('div');
-            preset.className = 'preset-item';
-            preset.style.background = gradient;
-            preset.title = `Preset ${index + 1}`;
-            preset.addEventListener('click', () => this.applyPreset(gradient));
-            this.presets.appendChild(preset);
+        Object.entries(this.presetCategories).forEach(([category, presets]) => {
+            const categorySection = document.createElement('div');
+            categorySection.className = 'preset-category';
+            
+            const categoryTitle = document.createElement('h4');
+            categoryTitle.className = 'category-title';
+            categoryTitle.textContent = category;
+            categorySection.appendChild(categoryTitle);
+            
+            const categoryGrid = document.createElement('div');
+            categoryGrid.className = 'category-grid';
+            
+            presets.forEach((preset) => {
+                const presetItem = document.createElement('div');
+                presetItem.className = 'preset-item';
+                presetItem.style.background = preset.gradient;
+                presetItem.title = preset.name;
+                
+                const presetName = document.createElement('span');
+                presetName.className = 'preset-name';
+                presetName.textContent = preset.name;
+                presetItem.appendChild(presetName);
+                
+                presetItem.addEventListener('click', () => this.applyPreset(preset.gradient));
+                categoryGrid.appendChild(presetItem);
+            });
+            
+            categorySection.appendChild(categoryGrid);
+            this.presets.appendChild(categorySection);
         });
     }
     
