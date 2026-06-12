@@ -25,6 +25,8 @@ class GradientGenerator {
         this.classModal = document.getElementById('classModal');
         this.classCode = document.getElementById('classCode');
         this.copyClassBtn = document.getElementById('copyClassBtn');
+        this.shortcutsModal = document.getElementById('shortcutsModal');
+        this.closeShortcutsBtn = document.getElementById('closeShortcuts');
         
         // Gradient history
         this.gradientHistory = [];
@@ -135,6 +137,20 @@ class GradientGenerator {
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            // Show shortcuts modal on ? key
+            if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                this.toggleShortcutsModal();
+                return;
+            }
+            
+            // Close modals on Escape
+            if (e.key === 'Escape') {
+                this.classModal.classList.remove('show');
+                this.shortcutsModal.classList.remove('show');
+                return;
+            }
+            
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key.toLowerCase()) {
                     case 'r':
@@ -155,9 +171,30 @@ class GradientGenerator {
                             this.copyToClipboard();
                         }
                         break;
+                    case 'd':
+                        e.preventDefault();
+                        this.downloadGradient();
+                        break;
                 }
             }
         });
+        
+        // Shortcuts modal close handlers
+        if (this.closeShortcutsBtn) {
+            this.closeShortcutsBtn.addEventListener('click', () => {
+                this.shortcutsModal.classList.remove('show');
+            });
+        }
+        
+        this.shortcutsModal.addEventListener('click', (e) => {
+            if (e.target === this.shortcutsModal) {
+                this.shortcutsModal.classList.remove('show');
+            }
+        });
+    }
+    
+    toggleShortcutsModal() {
+        this.shortcutsModal.classList.toggle('show');
     }
     
     toggleAngleControl() {

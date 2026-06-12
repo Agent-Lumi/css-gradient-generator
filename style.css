@@ -483,6 +483,59 @@ input[type="range"]::-webkit-slider-thumb {
     color: #aaa;
 }
 
+.keyboard-hint kbd {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #fff;
+}
+
+/* Shortcuts Modal Styles */
+.shortcuts-content {
+    max-width: 450px !important;
+}
+
+.shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.shortcut-item:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.shortcut-item kbd {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 30px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.shortcut-item span {
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
 /* Modal */
 .modal {
     display: none;

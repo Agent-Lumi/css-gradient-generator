@@ -80,8 +80,46 @@
             <div class="preset-grid" id="presets"></div>
         </div>
         
-        <div class="keyboard-hint">
-            <p>💡 <strong>Keyboard shortcuts:</strong> Ctrl+R = Random | Ctrl+Shift+R = Random from History | Ctrl+S = Save | Ctrl+C = Copy CSS</p>
+        <div class="keyboard-hint" id="keyboardHint">
+            <p>💡 <strong>Keyboard shortcuts:</strong> Press <kbd>?</kbd> for help | Ctrl+R = Random | Ctrl+Shift+R = Random from History | Ctrl+S = Save | Ctrl+C = Copy CSS</p>
+        </div>
+        
+        <!-- Keyboard Shortcuts Modal -->
+        <div id="shortcutsModal" class="modal">
+            <div class="modal-content shortcuts-content">
+                <span class="modal-close" id="closeShortcuts">&times;</span>
+                <h3>⌨️ Keyboard Shortcuts</h3>
+                <div class="shortcuts-list">
+                    <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>R</kbd>
+                        <span>Generate random gradient</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>
+                        <span>Random from history</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                        <span>Save gradient to gallery</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>C</kbd>
+                        <span>Copy CSS code</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>D</kbd>
+                        <span>Download gradient as PNG</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>?</kbd>
+                        <span>Show/hide this help</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Esc</kbd>
+                        <span>Close modals</span>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- CSS Class Modal -->
