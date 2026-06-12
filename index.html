@@ -17,6 +17,7 @@
         
         <div class="gradient-actions">
             <button id="randomGradient" class="btn btn-random" title="Random gradient (Ctrl+R)">🎲 Random</button>
+            <button id="randomFromHistory" class="btn btn-history" title="Random from history">📜 Random from History</button>
             <button id="saveGradient" class="btn btn-save" title="Save to gallery (Ctrl+S)">💾 Save</button>
         </div>
         
@@ -56,10 +57,17 @@
             <div class="code-block">
                 <code id="cssCode">background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);</code>
                 <div class="code-actions">
-                    <button id="copyBtn" class="btn btn-copy">Copy</button>
+                    <button id="copyBtn" class="btn btn-copy">Copy CSS</button>
+                    <button id="copyScssBtn" class="btn btn-copy-scss" title="Copy as SCSS mixin">Copy SCSS</button>
+                    <button id="generateClassBtn" class="btn btn-generate-class" title="Generate CSS class">Get CSS Class</button>
                     <button id="downloadBtn" class="btn btn-download" title="Download gradient as PNG">📥 PNG</button>
                 </div>
             </div>
+        </div>
+        
+        <div class="gradient-history" id="gradientHistory">
+            <h3>Recent Gradients <span id="historyCount" class="count-badge">0</span> <button id="clearHistory" class="btn-small" title="Clear history">🗑️ Clear</button></h3>
+            <div class="history-grid" id="historyGrid"></div>
         </div>
         
         <div class="saved-gradients" id="savedGradients">
@@ -73,7 +81,18 @@
         </div>
         
         <div class="keyboard-hint">
-            <p>💡 <strong>Keyboard shortcuts:</strong> Ctrl+R = Random | Ctrl+S = Save | Ctrl+C = Copy CSS</p>
+            <p>💡 <strong>Keyboard shortcuts:</strong> Ctrl+R = Random | Ctrl+Shift+R = Random from History | Ctrl+S = Save | Ctrl+C = Copy CSS</p>
+        </div>
+        
+        <!-- CSS Class Modal -->
+        <div id="classModal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h3>Generated CSS Class</h3>
+                <p>Copy this class to your stylesheet:</p>
+                <pre id="classCode"></pre>
+                <button id="copyClassBtn" class="btn btn-copy">Copy Class</button>
+            </div>
         </div>
     </div>
     

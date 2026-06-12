@@ -9,13 +9,26 @@ class GradientGenerator {
         this.preview = document.getElementById('preview');
         this.cssCode = document.getElementById('cssCode');
         this.copyBtn = document.getElementById('copyBtn');
+        this.copyScssBtn = document.getElementById('copyScssBtn');
+        this.generateClassBtn = document.getElementById('generateClassBtn');
         this.downloadBtn = document.getElementById('downloadBtn');
         this.presets = document.getElementById('presets');
         this.randomBtn = document.getElementById('randomGradient');
+        this.randomHistoryBtn = document.getElementById('randomFromHistory');
         this.saveBtn = document.getElementById('saveGradient');
         this.savedGrid = document.getElementById('savedGrid');
         this.savedCount = document.getElementById('savedCount');
         this.canvas = document.getElementById('gradientCanvas');
+        this.historyGrid = document.getElementById('historyGrid');
+        this.historyCount = document.getElementById('historyCount');
+        this.clearHistoryBtn = document.getElementById('clearHistory');
+        this.classModal = document.getElementById('classModal');
+        this.classCode = document.getElementById('classCode');
+        this.copyClassBtn = document.getElementById('copyClassBtn');
+        
+        // Gradient history
+        this.gradientHistory = [];
+        this.MAX_HISTORY = 12;
         
         this.presetCategories = {
             'Sunset': [
@@ -62,6 +75,7 @@ class GradientGenerator {
         this.addEventListeners();
         this.renderPresets();
         this.loadSavedGradients();
+        this.loadHistory();
         this.updateGradient();
     }
     
@@ -93,9 +107,31 @@ class GradientGenerator {
         });
         
         this.copyBtn.addEventListener('click', () => this.copyToClipboard());
+        this.copyScssBtn.addEventListener('click', () => this.copyToClipboard('scss'));
+        this.generateClassBtn.addEventListener('click', () => this.showClassModal());
         this.downloadBtn.addEventListener('click', () => this.downloadGradient());
         this.randomBtn.addEventListener('click', () => this.generateRandomGradient());
+        this.randomHistoryBtn.addEventListener('click', () => this.generateRandomFromHistory());
         this.saveBtn.addEventListener('click', () => this.saveCurrentGradient());
+        this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+        
+        // Modal close
+        document.querySelector('.modal-close').addEventListener('click', () => {
+            this.classModal.classList.remove('show');
+        });
+        
+        this.classModal.addEventListener('click', (e) => {
+            if (e.target === this.classModal) {
+                this.classModal.classList.remove('show');
+            }
+        });
+        
+        this.copyClassBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(this.classCode.textContent).then(() => {
+                this.showToast('✅ CSS class copied!');
+                this.classModal.classList.remove('show');
+            });
+        });
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -103,7 +139,11 @@ class GradientGenerator {
                 switch(e.key.toLowerCase()) {
                     case 'r':
                         e.preventDefault();
-                        this.generateRandomGradient();
+                        if (e.shiftKey) {
+                            this.generateRandomFromHistory();
+                        } else {
+                            this.generateRandomGradient();
+                        }
                         break;
                     case 's':
                         e.preventDefault();
@@ -386,14 +426,333 @@ class GradientGenerator {
         this.showToast(`🎨 Applied preset: ${gradient.split('(')[0]}`);
     }
     
-    copyToClipboard() {
-        navigator.clipboard.writeText(this.cssCode.textContent).then(() => {
-            this.showToast('✅ CSS copied to clipboard!');
+    copyToClipboard(format = 'css') {
+        let textToCopy = this.cssCode.textContent;
+        
+        if (format === 'scss') {
+            const css = this.cssCode.textContent;
+            const match = css.match(/background:\s*(.+);/);
+            if (match) {
+                textToCopy = `@mixin gradient-background {\n    background: ${match[1]};\n}`;
+            }
+        }
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            this.showToast(format === 'scss' ? '✅ SCSS copied to clipboard!' : '✅ CSS copied to clipboard!');
             this.copyBtn.textContent = 'Copied!';
             setTimeout(() => {
-                this.copyBtn.textContent = 'Copy';
+                this.copyBtn.textContent = 'Copy CSS';
             }, 2000);
         });
+    }
+    
+    showClassModal() {
+        const css = this.cssCode.textContent;
+        const match = css.match(/background:\s*(.+);/);
+        if (match) {
+            const className = `gradient-${Date.now().toString(36).substr(-6)}`;
+            this.classCode.textContent = `.${className} {\n    ${css}\n}`;
+            this.classModal.classList.add('show');
+        }
+    }
+    
+    addToHistory() {
+        const css = this.generateCSS();
+        const stops = this.getColorStops();
+        
+        // Don't add duplicates at the beginning
+        if (this.gradientHistory.length > 0 && this.gradientHistory[0].css === css) {
+            return;
+        }
+        
+        const entry = {
+            id: Date.now(),
+            css: css,
+            type: this.gradientType.value,
+            angle: this.angle.value,
+            stops: stops,
+            timestamp: new Date().toISOString()
+        };
+        
+        this.gradientHistory.unshift(entry);
+        
+        // Limit history size
+        if (this.gradientHistory.length > this.MAX_HISTORY) {
+            this.gradientHistory.pop();
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('gradientHistory', JSON.stringify(this.gradientHistory));
+        this.renderHistory();
+    }
+    
+    loadHistory() {
+        const saved = localStorage.getItem('gradientHistory');
+        if (saved) {
+            try {
+                this.gradientHistory = JSON.parse(saved);
+            } catch (e) {
+                this.gradientHistory = [];
+            }
+        }
+        this.renderHistory();
+    }
+    
+    renderHistory() {
+        this.historyCount.textContent = this.gradientHistory.length;
+        this.historyGrid.innerHTML = '';
+        
+        if (this.gradientHistory.length === 0) {
+            this.historyGrid.innerHTML = '<div class="history-item-empty">No history yet. Generate some gradients!</div>';
+            return;
+        }
+        
+        this.gradientHistory.forEach((gradient, index) => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.style.background = gradient.css.replace('background: ', '').replace(';', '');
+            item.title = `Click to load (generated ${new Date(gradient.timestamp).toLocaleTimeString()})`;
+            
+            item.addEventListener('click', () => {
+                this.loadSavedGradient(gradient);
+                this.showToast(`📂 Loaded from history (${index + 1}/${this.gradientHistory.length})`);
+            });
+            
+            this.historyGrid.appendChild(item);
+        });
+    }
+    
+    generateRandomFromHistory() {
+        if (this.gradientHistory.length === 0) {
+            this.showToast('⚠️ No history yet! Generate some gradients first.');
+            return;
+        }
+        
+        const randomEntry = this.gradientHistory[Math.floor(Math.random() * this.gradientHistory.length)];
+        this.loadSavedGradient(randomEntry);
+        this.showToast(`🎲 Random from history: ${this.gradientHistory.indexOf(randomEntry) + 1}/${this.gradientHistory.length}`);
+    }
+    
+    clearHistory() {
+        if (this.gradientHistory.length === 0) return;
+        
+        if (confirm('Clear all gradient history?')) {
+            this.gradientHistory = [];
+            localStorage.removeItem('gradientHistory');
+            this.renderHistory();
+            this.showToast('🗑️ History cleared');
+        }
+    }
+    
+    updateGradient() {
+        const css = this.generateCSS();
+        this.preview.style = css;
+        this.cssCode.textContent = css;
+    }
+    
+    generateRandomGradient() {
+        // Random type
+        const types = ['linear', 'radial', 'conic'];
+        this.gradientType.value = types[Math.floor(Math.random() * types.length)];
+        this.toggleAngleControl();
+        
+        // Random angle
+        if (this.gradientType.value !== 'radial') {
+            this.angle.value = Math.floor(Math.random() * 360);
+            this.angleValue.textContent = this.angle.value;
+        }
+        
+        // Random colors (2-4)
+        const numColors = Math.floor(Math.random() * 3) + 2;
+        this.colorStops.innerHTML = '';
+        
+        for (let i = 0; i < numColors; i++) {
+            const color = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            const position = Math.round((i / (numColors - 1)) * 100);
+            
+            const colorStop = document.createElement('div');
+            colorStop.className = 'color-stop';
+            colorStop.innerHTML = `
+                <input type="color" class="color-picker" value="${color}">
+                <input type="number" class="position" value="${position}" min="0" max="100">%
+                <button class="remove-color" title="Remove color">×</button>
+            `;
+            this.colorStops.appendChild(colorStop);
+        }
+        
+        this.updateGradient();
+        this.addToHistory();
+        this.showToast('🎲 Random gradient generated!');
+    }
+    
+    saveCurrentGradient() {
+        const saved = JSON.parse(localStorage.getItem('savedGradients') || '[]');
+        const css = this.generateCSS();
+        
+        // Check if already saved
+        if (saved.some(g => g.css === css)) {
+            this.showToast('⚠️ This gradient is already saved!');
+            return;
+        }
+        
+        const gradient = {
+            id: Date.now(),
+            css: css,
+            type: this.gradientType.value,
+            angle: this.angle.value,
+            stops: this.getColorStops(),
+            timestamp: new Date().toISOString()
+        };
+        
+        saved.unshift(gradient);
+        
+        // Limit to 20 saved gradients
+        if (saved.length > 20) saved.pop();
+        
+        localStorage.setItem('savedGradients', JSON.stringify(saved));
+        this.renderSavedGradients();
+        this.showToast('✅ Gradient saved to gallery!');
+    }
+    
+    loadSavedGradients() {
+        this.renderSavedGradients();
+    }
+    
+    renderSavedGradients() {
+        const saved = JSON.parse(localStorage.getItem('savedGradients') || '[]');
+        this.savedCount.textContent = saved.length;
+        this.savedGrid.innerHTML = '';
+        
+        if (saved.length === 0) {
+            this.savedGrid.innerHTML = '<div class="saved-item-empty">No saved gradients yet. Click "Save" to add some!</div>';
+            return;
+        }
+        
+        saved.forEach(gradient => {
+            const item = document.createElement('div');
+            item.className = 'saved-item';
+            item.style.background = gradient.css.replace('background: ', '').replace(';', '');
+            item.title = 'Click to load';
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-saved';
+            deleteBtn.textContent = '×';
+            deleteBtn.title = 'Delete';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.deleteSavedGradient(gradient.id);
+            };
+            
+            item.appendChild(deleteBtn);
+            item.addEventListener('click', () => this.loadSavedGradient(gradient));
+            this.savedGrid.appendChild(item);
+        });
+    }
+    
+    deleteSavedGradient(id) {
+        const saved = JSON.parse(localStorage.getItem('savedGradients') || '[]');
+        const filtered = saved.filter(g => g.id !== id);
+        localStorage.setItem('savedGradients', JSON.stringify(filtered));
+        this.renderSavedGradients();
+        this.showToast('🗑️ Gradient deleted');
+    }
+    
+    loadSavedGradient(gradient) {
+        this.gradientType.value = gradient.type;
+        this.toggleAngleControl();
+        
+        if (gradient.type !== 'radial') {
+            this.angle.value = gradient.angle;
+            this.angleValue.textContent = gradient.angle;
+        }
+        
+        this.colorStops.innerHTML = '';
+        gradient.stops.forEach(stop => {
+            const colorStop = document.createElement('div');
+            colorStop.className = 'color-stop';
+            colorStop.innerHTML = `
+                <input type="color" class="color-picker" value="${stop.color}">
+                <input type="number" class="position" value="${stop.position}" min="0" max="100">%
+                <button class="remove-color" title="Remove color">×</button>
+            `;
+            this.colorStops.appendChild(colorStop);
+        });
+        
+        this.updateGradient();
+        this.showToast('📂 Gradient loaded!');
+    }
+    
+    renderPresets() {
+        Object.entries(this.presetCategories).forEach(([category, presets]) => {
+            const categorySection = document.createElement('div');
+            categorySection.className = 'preset-category';
+            
+            const categoryTitle = document.createElement('h4');
+            categoryTitle.className = 'category-title';
+            categoryTitle.textContent = category;
+            categorySection.appendChild(categoryTitle);
+            
+            const categoryGrid = document.createElement('div');
+            categoryGrid.className = 'category-grid';
+            
+            presets.forEach((preset) => {
+                const presetItem = document.createElement('div');
+                presetItem.className = 'preset-item';
+                presetItem.style.background = preset.gradient;
+                presetItem.title = preset.name;
+                
+                const presetName = document.createElement('span');
+                presetName.className = 'preset-name';
+                presetName.textContent = preset.name;
+                presetItem.appendChild(presetName);
+                
+                presetItem.addEventListener('click', () => this.applyPreset(preset.gradient));
+                categoryGrid.appendChild(presetItem);
+            });
+            
+            categorySection.appendChild(categoryGrid);
+            this.presets.appendChild(categorySection);
+        });
+    }
+    
+    applyPreset(gradient) {
+        const match = gradient.match(/(linear|radial|conic)-gradient\(([^)]+)\)/);
+        if (!match) return;
+        
+        const type = match[1];
+        const params = match[2];
+        
+        this.gradientType.value = type;
+        this.toggleAngleControl();
+        
+        const stopsMatch = params.match(/#[a-fA-F0-9]{6}\s*\d+%/g);
+        if (!stopsMatch) return;
+        
+        this.colorStops.innerHTML = '';
+        
+        stopsMatch.forEach(stopStr => {
+            const [color, position] = stopStr.split(/\s+/);
+            const colorStop = document.createElement('div');
+            colorStop.className = 'color-stop';
+            colorStop.innerHTML = `
+                <input type="color" class="color-picker" value="${color}">
+                <input type="number" class="position" value="${parseInt(position)}" min="0" max="100">%
+                <button class="remove-color" title="Remove color">×</button>
+            `;
+            this.colorStops.appendChild(colorStop);
+        });
+        
+        if (type !== 'radial') {
+            const angleMatch = params.match(/(\d+)deg/);
+            if (angleMatch) {
+                this.angle.value = angleMatch[1];
+                this.angleValue.textContent = angleMatch[1];
+            }
+        }
+        
+        this.updateGradient();
+        this.addToHistory();
+        this.showToast(`🎨 Applied preset`);
     }
     
     downloadGradient() {
