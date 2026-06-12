@@ -9,7 +9,13 @@ class GradientGenerator {
         this.preview = document.getElementById('preview');
         this.cssCode = document.getElementById('cssCode');
         this.copyBtn = document.getElementById('copyBtn');
+        this.downloadBtn = document.getElementById('downloadBtn');
         this.presets = document.getElementById('presets');
+        this.randomBtn = document.getElementById('randomGradient');
+        this.saveBtn = document.getElementById('saveGradient');
+        this.savedGrid = document.getElementById('savedGrid');
+        this.savedCount = document.getElementById('savedCount');
+        this.canvas = document.getElementById('gradientCanvas');
         
         this.presetCategories = {
             'Sunset': [
@@ -55,6 +61,7 @@ class GradientGenerator {
     init() {
         this.addEventListeners();
         this.renderPresets();
+        this.loadSavedGradients();
         this.updateGradient();
     }
     
@@ -86,6 +93,31 @@ class GradientGenerator {
         });
         
         this.copyBtn.addEventListener('click', () => this.copyToClipboard());
+        this.downloadBtn.addEventListener('click', () => this.downloadGradient());
+        this.randomBtn.addEventListener('click', () => this.generateRandomGradient());
+        this.saveBtn.addEventListener('click', () => this.saveCurrentGradient());
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'r':
+                        e.preventDefault();
+                        this.generateRandomGradient();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        this.saveCurrentGradient();
+                        break;
+                    case 'c':
+                        if (document.activeElement.tagName !== 'INPUT') {
+                            e.preventDefault();
+                            this.copyToClipboard();
+                        }
+                        break;
+                }
+            }
+        });
     }
     
     toggleAngleControl() {
@@ -149,6 +181,137 @@ class GradientGenerator {
         const css = this.generateCSS();
         this.preview.style = css;
         this.cssCode.textContent = css;
+    }
+    
+    generateRandomGradient() {
+        // Random type
+        const types = ['linear', 'radial', 'conic'];
+        this.gradientType.value = types[Math.floor(Math.random() * types.length)];
+        this.toggleAngleControl();
+        
+        // Random angle
+        if (this.gradientType.value !== 'radial') {
+            this.angle.value = Math.floor(Math.random() * 360);
+            this.angleValue.textContent = this.angle.value;
+        }
+        
+        // Random colors (2-4)
+        const numColors = Math.floor(Math.random() * 3) + 2;
+        this.colorStops.innerHTML = '';
+        
+        for (let i = 0; i < numColors; i++) {
+            const color = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            const position = Math.round((i / (numColors - 1)) * 100);
+            
+            const colorStop = document.createElement('div');
+            colorStop.className = 'color-stop';
+            colorStop.innerHTML = `
+                <input type="color" class="color-picker" value="${color}">
+                <input type="number" class="position" value="${position}" min="0" max="100">%
+                <button class="remove-color" title="Remove color">×</button>
+            `;
+            this.colorStops.appendChild(colorStop);
+        }
+        
+        this.updateGradient();
+        this.showToast('🎲 Random gradient generated!');
+    }
+    
+    saveCurrentGradient() {
+        const saved = JSON.parse(localStorage.getItem('savedGradients') || '[]');
+        const css = this.generateCSS();
+        
+        // Check if already saved
+        if (saved.some(g => g.css === css)) {
+            this.showToast('⚠️ This gradient is already saved!');
+            return;
+        }
+        
+        const gradient = {
+            id: Date.now(),
+            css: css,
+            type: this.gradientType.value,
+            angle: this.angle.value,
+            stops: this.getColorStops(),
+            timestamp: new Date().toISOString()
+        };
+        
+        saved.unshift(gradient);
+        
+        // Limit to 20 saved gradients
+        if (saved.length > 20) saved.pop();
+        
+        localStorage.setItem('savedGradients', JSON.stringify(saved));
+        this.renderSavedGradients();
+        this.showToast('✅ Gradient saved to gallery!');
+    }
+    
+    loadSavedGradients() {
+        this.renderSavedGradients();
+    }
+    
+    renderSavedGradients() {
+        const saved = JSON.parse(localStorage.getItem('savedGradients') || '[]');
+        this.savedCount.textContent = saved.length;
+        this.savedGrid.innerHTML = '';
+        
+        if (saved.length === 0) {
+            this.savedGrid.innerHTML = '<div class="saved-item-empty">No saved gradients yet. Click "Save" to add some!</div>';
+            return;
+        }
+        
+        saved.forEach(gradient => {
+            const item = document.createElement('div');
+            item.className = 'saved-item';
+            item.style.background = gradient.css.replace('background: ', '').replace(';', '');
+            item.title = 'Click to load';
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-saved';
+            deleteBtn.textContent = '×';
+            deleteBtn.title = 'Delete';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.deleteSavedGradient(gradient.id);
+            };
+            
+            item.appendChild(deleteBtn);
+            item.addEventListener('click', () => this.loadSavedGradient(gradient));
+            this.savedGrid.appendChild(item);
+        });
+    }
+    
+    deleteSavedGradient(id) {
+        const saved = JSON.parse(localStorage.getItem('savedGradients') || '[]');
+        const filtered = saved.filter(g => g.id !== id);
+        localStorage.setItem('savedGradients', JSON.stringify(filtered));
+        this.renderSavedGradients();
+        this.showToast('🗑️ Gradient deleted');
+    }
+    
+    loadSavedGradient(gradient) {
+        this.gradientType.value = gradient.type;
+        this.toggleAngleControl();
+        
+        if (gradient.type !== 'radial') {
+            this.angle.value = gradient.angle;
+            this.angleValue.textContent = gradient.angle;
+        }
+        
+        this.colorStops.innerHTML = '';
+        gradient.stops.forEach(stop => {
+            const colorStop = document.createElement('div');
+            colorStop.className = 'color-stop';
+            colorStop.innerHTML = `
+                <input type="color" class="color-picker" value="${stop.color}">
+                <input type="number" class="position" value="${stop.position}" min="0" max="100">%
+                <button class="remove-color" title="Remove color">×</button>
+            `;
+            this.colorStops.appendChild(colorStop);
+        });
+        
+        this.updateGradient();
+        this.showToast('📂 Gradient loaded!');
     }
     
     renderPresets() {
@@ -220,15 +383,85 @@ class GradientGenerator {
         }
         
         this.updateGradient();
+        this.showToast(`🎨 Applied preset: ${gradient.split('(')[0]}`);
     }
     
     copyToClipboard() {
         navigator.clipboard.writeText(this.cssCode.textContent).then(() => {
+            this.showToast('✅ CSS copied to clipboard!');
             this.copyBtn.textContent = 'Copied!';
             setTimeout(() => {
                 this.copyBtn.textContent = 'Copy';
             }, 2000);
         });
+    }
+    
+    downloadGradient() {
+        const canvas = this.canvas;
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1920;
+        canvas.height = 1080;
+        
+        const type = this.gradientType.value;
+        const stops = this.getColorStops();
+        
+        let gradient;
+        if (type === 'linear') {
+            const angleRad = (this.angle.value - 90) * Math.PI / 180;
+            const x1 = canvas.width / 2 + Math.cos(angleRad + Math.PI) * canvas.width;
+            const y1 = canvas.height / 2 + Math.sin(angleRad + Math.PI) * canvas.height;
+            const x2 = canvas.width / 2 + Math.cos(angleRad) * canvas.width;
+            const y2 = canvas.height / 2 + Math.sin(angleRad) * canvas.height;
+            gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+        } else if (type === 'radial') {
+            gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, canvas.height / 2
+            );
+        } else {
+            gradient = ctx.createConicGradient(
+                this.angle.value * Math.PI / 180,
+                canvas.width / 2, canvas.height / 2
+            );
+        }
+        
+        stops.forEach(stop => {
+            gradient.addColorStop(stop.position / 100, stop.color);
+        });
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gradient-${Date.now()}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+            this.showToast('📥 Gradient downloaded as PNG!');
+        });
+    }
+    
+    showToast(message) {
+        // Remove existing toast
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // Trigger animation
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
     }
 }
 
