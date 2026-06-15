@@ -26,7 +26,11 @@ class GradientGenerator {
         this.classCode = document.getElementById('classCode');
         this.copyClassBtn = document.getElementById('copyClassBtn');
         this.shortcutsModal = document.getElementById('shortcutsModal');
-        this.closeShortcutsBtn = document.getElementById('closeShortcuts');
+        this.closeShortcutsBtn = document.getElementById("closeShortcuts");
+        this.themeToggle = document.getElementById("themeToggle");
+        
+        // Theme state
+        this.isDarkTheme = true;
         
         // Gradient history
         this.gradientHistory = [];
@@ -78,18 +82,21 @@ class GradientGenerator {
         this.renderPresets();
         this.loadSavedGradients();
         this.loadHistory();
+        this.loadTheme();
         this.updateGradient();
     }
     
     addEventListeners() {
         this.gradientType.addEventListener('change', () => {
             this.toggleAngleControl();
-            this.updateGradient();
+            this.loadTheme();
+        this.updateGradient();
         });
         
         this.angle.addEventListener('input', () => {
             this.angleValue.textContent = this.angle.value;
-            this.updateGradient();
+            this.loadTheme();
+        this.updateGradient();
         });
         
         this.addColorBtn.addEventListener('click', () => this.addColorStop());
@@ -97,14 +104,16 @@ class GradientGenerator {
         this.colorStops.addEventListener('change', (e) => {
             if (e.target.classList.contains('color-picker') || 
                 e.target.classList.contains('position')) {
-                this.updateGradient();
+                this.loadTheme();
+        this.updateGradient();
             }
         });
         
         this.colorStops.addEventListener('click', (e) => {
             if (e.target.classList.contains('remove-color')) {
                 e.target.parentElement.remove();
-                this.updateGradient();
+                this.loadTheme();
+        this.updateGradient();
             }
         });
         
@@ -174,6 +183,10 @@ class GradientGenerator {
                     case 'd':
                         e.preventDefault();
                         this.downloadGradient();
+                    case 't':
+                        e.preventDefault();
+                        this.toggleTheme();
+                        break;
                         break;
                 }
             }
@@ -186,6 +199,11 @@ class GradientGenerator {
             });
         }
         
+                // Theme toggle
+        if (this.themeToggle) {
+            this.themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
+        
         this.shortcutsModal.addEventListener('click', (e) => {
             if (e.target === this.shortcutsModal) {
                 this.shortcutsModal.classList.remove('show');
@@ -194,6 +212,36 @@ class GradientGenerator {
     }
     
     toggleShortcutsModal() {
+        this.shortcutsModal.classList.toggle("show");
+    }
+    
+    /**
+     * Theme Toggle Methods
+     */
+    loadTheme() {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "light") {
+            this.isDarkTheme = false;
+            document.body.classList.add("light-theme");
+            this.updateThemeIcon();
+        }
+    }
+    
+    toggleTheme() {
+        this.isDarkTheme = !this.isDarkTheme;
+        document.body.classList.toggle("light-theme");
+        localStorage.setItem("theme", this.isDarkTheme ? "dark" : "light");
+        this.updateThemeIcon();
+        this.showToast(this.isDarkTheme ? "🌙 Switched to dark theme" : "☀️ Switched to light theme");
+    }
+    
+    updateThemeIcon() {
+        if (this.themeToggle) {
+            this.themeToggle.textContent = this.isDarkTheme ? "🌙" : "☀️";
+            this.themeToggle.title = `Toggle theme (${this.isDarkTheme ? "Ctrl+T" : "Ctrl+T"})`;
+        }
+    }
+    
         this.shortcutsModal.classList.toggle('show');
     }
     
@@ -218,6 +266,7 @@ class GradientGenerator {
         `;
         
         this.colorStops.appendChild(colorStop);
+        this.loadTheme();
         this.updateGradient();
     }
     
@@ -290,6 +339,7 @@ class GradientGenerator {
             this.colorStops.appendChild(colorStop);
         }
         
+        this.loadTheme();
         this.updateGradient();
         this.showToast('🎲 Random gradient generated!');
     }
@@ -387,6 +437,7 @@ class GradientGenerator {
             this.colorStops.appendChild(colorStop);
         });
         
+        this.loadTheme();
         this.updateGradient();
         this.showToast('📂 Gradient loaded!');
     }
@@ -459,6 +510,7 @@ class GradientGenerator {
             }
         }
         
+        this.loadTheme();
         this.updateGradient();
         this.showToast(`🎨 Applied preset: ${gradient.split('(')[0]}`);
     }
@@ -617,6 +669,7 @@ class GradientGenerator {
             this.colorStops.appendChild(colorStop);
         }
         
+        this.loadTheme();
         this.updateGradient();
         this.addToHistory();
         this.showToast('🎲 Random gradient generated!');
@@ -715,6 +768,7 @@ class GradientGenerator {
             this.colorStops.appendChild(colorStop);
         });
         
+        this.loadTheme();
         this.updateGradient();
         this.showToast('📂 Gradient loaded!');
     }
@@ -787,6 +841,7 @@ class GradientGenerator {
             }
         }
         
+        this.loadTheme();
         this.updateGradient();
         this.addToHistory();
         this.showToast(`🎨 Applied preset`);

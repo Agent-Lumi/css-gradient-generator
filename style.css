@@ -661,3 +661,116 @@ input[type="range"]::-webkit-slider-thumb {
         padding: 10px 18px;
     }
 }
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+}
+
+.theme-toggle:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.1);
+}
+
+/* Light Theme Variables */
+body.light-theme {
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    color: #1a1a2e;
+}
+
+body.light-theme .subtitle {
+    color: #666;
+}
+
+body.light-theme .controls,
+body.light-theme .output-section,
+body.light-theme .gradient-history,
+body.light-theme .saved-gradients,
+body.light-theme .presets {
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+body.light-theme .control-group label {
+    color: #444;
+}
+
+body.light-theme select,
+body.light-theme input[type="range"] {
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(0,0,0,0.15);
+    color: #1a1a2e;
+}
+
+body.light-theme select option {
+    background: #fff;
+    color: #1a1a2e;
+}
+
+body.light-theme input[type="range"]::-webkit-slider-thumb {
+    background: #764ba2;
+}
+
+body.light-theme .theme-toggle {
+    background: rgba(0,0,0,0.1);
+    color: #1a1a2e;
+}
+
+body.light-theme .theme-toggle:hover {
+    background: rgba(0,0,0,0.15);
+}
+
+body.light-theme code {
+    background: #f0f0f0;
+    color: #333;
+}
+
+body.light-theme .toast {
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+}
+
+body.light-theme .btn-secondary {
+    background: rgba(0,0,0,0.1);
+    color: #1a1a2e;
+}
+
+body.light-theme .btn-secondary:hover {
+    background: rgba(0,0,0,0.2);
+}
+
+body.light-theme .color-stop {
+    background: rgba(0,0,0,0.05);
+}
+
+body.light-theme .history-item,
+body.light-theme .saved-item,
+body.light-theme .preset-item {
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+body.light-theme .modal-content {
+    background: #fff;
+    color: #1a1a2e;
+}
+
+body.light-theme .keyboard-hint {
+    background: rgba(0,0,0,0.05);
+}
+
+body.light-theme .keyboard-hint code {
+    background: rgba(0,0,0,0.1);
+    color: #1a1a2e;
+}
