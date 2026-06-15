@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <button id="themeToggle" class="theme-toggle" title="Toggle theme (Ctrl+T)">🌙</button>
     <div class="container">
         <h1>🎨 CSS Gradient Generator</h1>
         <p class="subtitle">Create beautiful CSS gradients with live preview</p>
@@ -60,6 +61,7 @@
                     <button id="copyBtn" class="btn btn-copy">Copy CSS</button>
                     <button id="copyScssBtn" class="btn btn-copy-scss" title="Copy as SCSS mixin">Copy SCSS</button>
                     <button id="generateClassBtn" class="btn btn-generate-class" title="Generate CSS class">Get CSS Class</button>
+                    <button id="shareBtn" class="btn btn-share" title="Copy shareable URL (Ctrl+U)">🔗 Share</button>
                     <button id="downloadBtn" class="btn btn-download" title="Download gradient as PNG">📥 PNG</button>
                 </div>
             </div>
@@ -81,7 +83,7 @@
         </div>
         
         <div class="keyboard-hint" id="keyboardHint">
-            <p>💡 <strong>Keyboard shortcuts:</strong> Press <kbd>?</kbd> for help | Ctrl+R = Random | Ctrl+Shift+R = Random from History | Ctrl+S = Save | Ctrl+C = Copy CSS</p>
+            <p>💡 <strong>Keyboard shortcuts:</strong> Press <kbd>?</kbd> for help | Ctrl+R = Random | Ctrl+Shift+R = Random from History | Ctrl+S = Save | Ctrl+C = Copy CSS | Ctrl+U = Share URL</p>
         </div>
         
         <!-- Keyboard Shortcuts Modal -->
@@ -107,8 +109,16 @@
                         <span>Copy CSS code</span>
                     </div>
                     <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>U</kbd>
+                        <span>Copy shareable URL</span>
+                    </div>
+                    <div class="shortcut-item">
                         <kbd>Ctrl</kbd> + <kbd>D</kbd>
                         <span>Download gradient as PNG</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl</kbd> + <kbd>T</kbd>
+                        <span>Toggle dark/light theme</span>
                     </div>
                     <div class="shortcut-item">
                         <kbd>?</kbd>
@@ -219,4 +229,12 @@ const API = {
         return response.json();
     }
 };
+</script>
+<script>
+// Usage stats
+const stats = JSON.parse(localStorage.getItem('app-stats') || '{}');
+stats.visits = (stats.visits || 0) + 1;
+stats.lastVisit = new Date().toISOString();
+localStorage.setItem('app-stats', JSON.stringify(stats));
+console.log('Visits:', stats.visits);
 </script>
